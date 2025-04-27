@@ -1,26 +1,71 @@
 
-export const orders = [
+export default [
   {
-    id: '1',
-    instrument: 'Book 1',
-    side: 2,
-    price: 10.0,
-    quantity: 2,
-    remainingQuantity: 0,
-    status: 'closed',
-    createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-02T00:00:00Z'
+  id: '1',
+  instrument: 'BTC-USD',
+  side: 1,
+  price: 50000,
+  quantity: 10,
+  remainingQuantity: 2,
+  status: 'open',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
   },
   {
     id: '2',
-    instrument: 'Book 2',
+    instrument: 'USD-BTC',
     side: 1,
     price: 15.0,
     quantity: 1,
     remainingQuantity: 0,
     status: 'closed',
-    createdAt: '2023-01-03T00:00:00Z',
-    updatedAt: '2023-01-04T00:00:00Z'
-  }
+    createdAt: new Date().toISOString(), // Valid ISO string
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    instrument: 'ETH-USD',
+    side: 1,
+    price: 2000,
+    quantity: 5,
+    remainingQuantity: 5,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '4',
+    instrument: 'USD-ETH',
+    side: 1,
+    price: 10.0,
+    quantity: 2,
+    remainingQuantity: 2,
+    status: 'canceled',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '5',
+    instrument: 'LTC-USD',
+    side: 1,
+    price: 100,
+    quantity: 20,
+    remainingQuantity: 0,
+    status: 'closed',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '6',
+    instrument: 'USD-LTC',
+    side: 1,
+    price: 5.0,
+    quantity: 10,
+    remainingQuantity: 10,
+    status: 'open',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+
         
 ];
