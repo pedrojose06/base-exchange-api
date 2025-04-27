@@ -27,19 +27,13 @@ export const orderResolvers = {
   },
   Mutation: {
     updateOrderStatus: (_: unknown, { id, status }: { id: string; status: string }): IOrder | null => {
-      console.log('Orders before update:', orders); // Log the orders array before update
-      console.log('ID being searched:', id); // Log the ID being searched for
-  
       const order = orders.find(order => order.id === id);
       if (order) {
-        console.log('Order found:', order); // Log the found order
-        order.status = status; // Update the status
-        order.updatedAt = new Date().toISOString(); // Update the `updatedAt` timestamp
-        console.log('Orders after update:', orders); // Log the orders array after update
-        return order; // Return the updated order
+        order.status = status; 
+        order.updatedAt = new Date().toISOString(); 
+        return order; 
       }
   
-      console.log('Order not found'); // Log if no order is found
       throw new Error(`Order with ID ${id} not found`);
     },
   },
