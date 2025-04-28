@@ -13,11 +13,20 @@ export const orderTypeDefs = gql`
     updatedAt: String!
   }
 
+  input OrderInput { 
+    instrument: String!
+    side: Int!
+    price: Float!
+    quantity: Float!
+  }
+
   type Query {
     orders: [Order],
     order(id: ID): Order
   }
+
   type Mutation {
-  updateOrderStatus(id: ID!, status: String!): Order
-}
+    updateOrderStatus(id: ID!, status: String!): Order
+    insertOrder(order: OrderInput!): Order
+  }
 `;

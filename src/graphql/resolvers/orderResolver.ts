@@ -36,5 +36,17 @@ export const orderResolvers = {
   
       throw new Error(`Order with ID ${id} not found`);
     },
+    insertOrder: (_: unknown, { order }: { order: IOrder }): IOrder => {
+      const newOrder = {
+        ...order,
+        id: (orders.length + 1).toString(), 
+        status: 'open',
+        remainingQuantity: order.quantity,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      orders.push(newOrder);
+      return newOrder;
+    }
   },
 };
