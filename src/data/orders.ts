@@ -14,12 +14,12 @@ export default [
   {
     id: '2',
     instrument: 'USD-BTC',
-    side: 1,
+    side: 2,
     price: 15.0,
     quantity: 1,
     remainingQuantity: 0,
     status: 'executed',
-    createdAt: new Date().toISOString(), // Valid ISO string
+    createdAt: new Date().toISOString(), 
     updatedAt: new Date().toISOString(),
   },
   {
@@ -36,7 +36,7 @@ export default [
   {
     id: '4',
     instrument: 'USD-ETH',
-    side: 1,
+    side: 2,
     price: 10.0,
     quantity: 2,
     remainingQuantity: 2,

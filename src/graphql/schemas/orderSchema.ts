@@ -21,8 +21,10 @@ export const orderTypeDefs = gql`
   }
 
   type Query {
-    orders: [Order],
+    orders(limit: Int, offset: Int): [Order],
     order(id: ID): Order
+    ordersByStatus(status: String!): [Order]
+    ordersBySide(side: Int!): [Order]
   }
 
   type Mutation {

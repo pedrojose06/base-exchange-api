@@ -16,7 +16,12 @@ export interface IOrder {
 
 export const orderResolvers = {
   Query: {
-    orders: () => orders,
+    orders: (_: unknown, args: { limit?: number; offset?: number }): IOrder[] => {
+      const { limit, offset } = args;
+
+      const paginatedOrders = orders.slice(offset || 0, (offset || 0) + (limit || orders.length));
+      return paginatedOrders;
+    },
     order: (_: unknown, args: { id: string }): IOrder | null => {
       const order = orders.find(order => order.id === args.id);
       if (order?.instrument) {
@@ -24,6 +29,26 @@ export const orderResolvers = {
       }
       return null;
     },
+    ordersByStatus: (_: unknown, args: { status: string }): IOrder[] => {
+      if (!args.status) {
+        return orders;
+      }
+      const filteredOrders = orders.filter(order => order.status === args.status);
+      if (filteredOrders.length > 0) {
+        return filteredOrders;
+      }
+      throw new Error(`No orders found with status: ${args.status}`);
+    },
+    ordersBySide: (_: unknown, args: { side: number }): IOrder[] => {
+      if (args.side !== 1 && args.side !== 2) {
+        return orders;
+      }
+      const filteredOrders = orders.filter(order => order.side === args.side);
+      if (filteredOrders.length > 0) {
+        return filteredOrders;
+      }
+      throw new Error(`No orders found with side: ${args.side}`);
+    }
   },
   Mutation: {
     updateOrderStatus: (_: unknown, { id, status }: { id: string; status: string }): IOrder | null => {
