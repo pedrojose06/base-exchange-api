@@ -18,7 +18,7 @@ export default [
     price: 15.0,
     quantity: 1,
     remainingQuantity: 0,
-    status: 'closed',
+    status: 'executed',
     createdAt: new Date().toISOString(), // Valid ISO string
     updatedAt: new Date().toISOString(),
   },
@@ -51,7 +51,7 @@ export default [
     price: 100,
     quantity: 20,
     remainingQuantity: 0,
-    status: 'closed',
+    status: 'executed',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
