@@ -13,6 +13,13 @@ export interface IOrder {
   updatedAt: string;
 }
 
+export interface IFiltersInput {
+  id?: string;
+  instrument?: string;
+  side?: number;
+  status?: string;
+  createdAt?: string;
+}
 
 export const orderResolvers = {
   Query: {
@@ -48,7 +55,53 @@ export const orderResolvers = {
         return filteredOrders;
       }
       throw new Error(`No orders found with side: ${args.side}`);
-    }
+    },
+    ordersByDate: (_: unknown, args: { date: string }): IOrder[] => {
+      if (!args.date) {
+        return orders;
+      }
+    
+      const filteredOrders = orders.filter(order => {
+        const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+        return orderDate === args.date; 
+      });
+      if (filteredOrders.length > 0) {
+        return filteredOrders;
+      }
+    
+      throw new Error(`No orders found on date: ${args.date}`);
+    },
+    ordersByFilter: (_: unknown, { filters }: { filters: IFiltersInput }): IOrder[] => {
+      let filteredOrders = orders;
+      if (!filters || (filters.id ==='' && filters.instrument === '' && filters.side === 0 && filters.status === '' && filters.createdAt === '')) {
+        return orders;
+      }
+      
+      if (filters.id) {
+        filteredOrders = filteredOrders.filter(order => order.id === filters.id);
+      }
+      if (filters.instrument) {
+        filteredOrders = filteredOrders.filter(order =>
+          order.instrument.toLowerCase().includes(filters.instrument.toLowerCase())
+        );
+      }
+    
+      if (filters.side) {
+        filteredOrders = filteredOrders.filter(order => order.side === Number(filters.side));
+      }
+      if (filters.status) {
+        filteredOrders = filteredOrders.filter(order => order.status === filters.status);
+      }
+      
+      if (filters.createdAt) {
+        filteredOrders = filteredOrders.filter(order => {
+          const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+          return orderDate === filters.createdAt;
+        });
+      }
+    
+      return filteredOrders;
+    },
   },
   Mutation: {
     updateOrderStatus: (_: unknown, { id, status }: { id: string; status: string }): IOrder | null => {

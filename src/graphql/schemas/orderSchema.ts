@@ -20,11 +20,21 @@ export const orderTypeDefs = gql`
     quantity: Float!
   }
 
+  input FiltersInput {
+    id: ID
+    instrument: String
+    side: Int
+    status: String
+    createdAt: String
+  }
+
   type Query {
     orders(limit: Int, offset: Int): [Order],
     order(id: ID): Order
     ordersByStatus(status: String!): [Order]
     ordersBySide(side: Int!): [Order]
+    ordersByDate(date: String!): [Order]
+    ordersByFilter(filters: FiltersInput): [Order]
   }
 
   type Mutation {
