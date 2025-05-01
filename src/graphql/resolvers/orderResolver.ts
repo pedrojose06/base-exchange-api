@@ -23,11 +23,22 @@ export interface IFiltersInput {
 
 export const orderResolvers = {
   Query: {
-    orders: (_: unknown, args: { limit?: number; offset?: number }): IOrder[] => {
-      const { limit, offset } = args;
-
-      const paginatedOrders = orders.slice(offset || 0, (offset || 0) + (limit || orders.length));
-      return paginatedOrders;
+    orders: (_: unknown, args: { limit?: number; page?: number }): { totalPages: number; orders: IOrder[] } => {
+      const { limit = 5, page = 1 } = args;
+    
+      // Calculate the total number of pages
+      const totalPages = Math.ceil(orders.length / limit);
+    
+      // Calculate the offset based on the page number
+      const offset = (page - 1) * limit;
+    
+      // Paginate the orders based on offset and limit
+      const paginatedOrders = orders.slice(offset, offset + limit);
+    
+      return {
+        totalPages,
+        orders: paginatedOrders,
+      };
     },
     order: (_: unknown, args: { id: string }): IOrder | null => {
       const order = orders.find(order => order.id === args.id);
@@ -36,71 +47,43 @@ export const orderResolvers = {
       }
       return null;
     },
-    ordersByStatus: (_: unknown, args: { status: string }): IOrder[] => {
-      if (!args.status) {
-        return orders;
-      }
-      const filteredOrders = orders.filter(order => order.status === args.status);
-      if (filteredOrders.length > 0) {
-        return filteredOrders;
-      }
-      throw new Error(`No orders found with status: ${args.status}`);
-    },
-    ordersBySide: (_: unknown, args: { side: number }): IOrder[] => {
-      if (args.side !== 1 && args.side !== 2) {
-        return orders;
-      }
-      const filteredOrders = orders.filter(order => order.side === args.side);
-      if (filteredOrders.length > 0) {
-        return filteredOrders;
-      }
-      throw new Error(`No orders found with side: ${args.side}`);
-    },
-    ordersByDate: (_: unknown, args: { date: string }): IOrder[] => {
-      if (!args.date) {
-        return orders;
-      }
-    
-      const filteredOrders = orders.filter(order => {
-        const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
-        return orderDate === args.date; 
-      });
-      if (filteredOrders.length > 0) {
-        return filteredOrders;
-      }
-    
-      throw new Error(`No orders found on date: ${args.date}`);
-    },
-    ordersByFilter: (_: unknown, { filters }: { filters: IFiltersInput }): IOrder[] => {
+    ordersByFilter: (
+      _: unknown,
+      { filters, limit = 5, page = 1 }: { filters: IFiltersInput; limit?: number; page?: number }
+    ): { totalPages: number; orders: IOrder[] } => {
       let filteredOrders = orders;
-      if (!filters || (filters.id ==='' && filters.instrument === '' && filters.side === 0 && filters.status === '' && filters.createdAt === '')) {
-        return orders;
-      }
-      
-      if (filters.id) {
+    
+      // Apply filters dynamically only if they have valid values
+      if (filters.id && filters.id.trim() !== "") {
         filteredOrders = filteredOrders.filter(order => order.id === filters.id);
       }
-      if (filters.instrument) {
+      if (filters.instrument && filters.instrument.trim() !== "") {
         filteredOrders = filteredOrders.filter(order =>
           order.instrument.toLowerCase().includes(filters.instrument.toLowerCase())
         );
       }
-    
-      if (filters.side) {
-        filteredOrders = filteredOrders.filter(order => order.side === Number(filters.side));
+      if (filters.side !== undefined && filters.side !== 0) {
+        filteredOrders = filteredOrders.filter(order => order.side === filters.side);
       }
-      if (filters.status) {
+      if (filters.status && filters.status.trim() !== "") {
         filteredOrders = filteredOrders.filter(order => order.status === filters.status);
       }
-      
-      if (filters.createdAt) {
+      if (filters.createdAt && filters.createdAt.trim() !== "") {
         filteredOrders = filteredOrders.filter(order => {
           const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
           return orderDate === filters.createdAt;
         });
       }
     
-      return filteredOrders;
+      // Calculate pagination
+      const totalPages = Math.ceil(filteredOrders.length / limit);
+      const offset = (page - 1) * limit;
+      const paginatedOrders = filteredOrders.slice(offset, offset + limit);
+    
+      return {
+        totalPages,
+        orders: paginatedOrders,
+      };
     },
   },
   Mutation: {
