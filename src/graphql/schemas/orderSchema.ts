@@ -28,6 +28,13 @@ export const orderTypeDefs = gql`
     createdAt: String
   }
 
+  type OrderHistoryDetail {
+    orderId: ID!
+    executedQuantity: Int!
+    quantity: Int!
+    createdAt: String!
+  }
+
   type PaginatedOrders {
     totalPages: Int!
     orders: [Order]!
@@ -37,6 +44,7 @@ export const orderTypeDefs = gql`
     orders(limit: Int, page: Int): PaginatedOrders,
     order(id: ID): Order
     ordersByFilter(filters: FiltersInput, limit: Int, page: Int): PaginatedOrders
+    orderHistoryDetailById(id: ID!): [OrderHistoryDetail]!
   }
 
   type Mutation {
