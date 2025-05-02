@@ -152,21 +152,21 @@ export const orderResolvers = {
     
         const executedQuantity = Math.min(newOrder.remainingQuantity, otherOrder.remainingQuantity);
     
-        // Update quantities and statuses
         newOrder.remainingQuantity -= executedQuantity;
         otherOrder.remainingQuantity -= executedQuantity;
 
         newOrder.status = 'pending';
         otherOrder.status = 'pending';
-    
-        if (otherOrder.remainingQuantity === 0) {
+        newOrder.updatedAt = new Date().toISOString();
+        otherOrder.updatedAt = new Date().toISOString();
+
+        if (otherOrder.remainingQuantity === 0) {    
           otherOrder.status = 'executed';
         }
         if (newOrder.remainingQuantity === 0) {
           newOrder.status = 'executed';
         }
     
-        // Add to history
         insertOrderHistory(otherOrder.id, executedQuantity, otherOrder.quantity);
         insertOrderHistory(newOrder.id, executedQuantity, newOrder.quantity);
       }
