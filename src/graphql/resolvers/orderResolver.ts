@@ -49,8 +49,12 @@ export const orderResolvers = {
       const totalPages = Math.ceil(orders.length / limit);
     
       const offset = (page - 1) * limit;
+
+      const sortedOrders = orders.sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     
-      const paginatedOrders = orders.slice(offset, offset + limit).sort((a, b) => {
+      const paginatedOrders = sortedOrders.slice(offset, offset + limit).sort((a, b) => {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
     
@@ -140,9 +144,7 @@ export const orderResolvers = {
           o.side === (newOrder.side === 1 ? 2 : 1) &&
           o.instrument === newOrder.instrument &&
           (o.status === 'open' || o.status === 'pending') &&
-          o.remainingQuantity > 0 &&
-          o.price === newOrder.price
-        )
+          o.remainingQuantity > 0)
         .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     
       for (const otherOrder of otherOrders) {
