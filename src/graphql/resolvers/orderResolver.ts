@@ -1,5 +1,5 @@
 import orders from "../../data/orders";
-import orderHistory from "../../data/orderHistory";
+import ordersHistory from "../../data/ordersHistory";
 
 
 export interface IOrder {
@@ -23,11 +23,22 @@ export interface IFiltersInput {
   
 }
 
-export interface IOrderHistoryDetail {
+export interface IOrdersHistoryDetail {
   orderId: string;
   executedQuantity: number;
   quantity: number;
   createdAt: string;
+}
+
+function insertOrderHistory( orderId: string, executedQuantity: number, quantity: number): IOrdersHistoryDetail {
+  const newOrderHistory = {
+    orderId: orderId,
+    executedQuantity: executedQuantity,
+    quantity: quantity,
+    createdAt: new Date().toISOString(),
+  };
+  ordersHistory.push(newOrderHistory);
+  return newOrderHistory;
 }
 
 export const orderResolvers = {
@@ -39,7 +50,9 @@ export const orderResolvers = {
     
       const offset = (page - 1) * limit;
     
-      const paginatedOrders = orders.slice(offset, offset + limit);
+      const paginatedOrders = orders.slice(offset, offset + limit).sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     
       return {
         totalPages,
@@ -89,9 +102,9 @@ export const orderResolvers = {
         orders: paginatedOrders,
       };
     },
-    orderHistoryDetailById: (_: unknown, { id }: { id: string }): IOrderHistoryDetail[] | null => {
+    orderHistoryDetailById: (_: unknown, { id }: { id: string }): IOrdersHistoryDetail[] | null => {
       const order = orders.find(order => order.id === id);
-      const orderHistoryDetail = orderHistory.filter(order => order.orderId === id).map(orderHistoryDetail => ({
+      const orderHistoryDetail = ordersHistory.filter(order => order.orderId === id).map(orderHistoryDetail => ({
         orderId: orderHistoryDetail.orderId,
         executedQuantity: orderHistoryDetail.executedQuantity,
         quantity: order.quantity,
@@ -115,51 +128,50 @@ export const orderResolvers = {
     insertOrder: (_: unknown, { order }: { order: IOrder }): IOrder => {
       const newOrder = {
         ...order,
-        id: (orders.length + 1).toString(), 
+        id: (orders.length + 1).toString(),
         status: 'open',
         remainingQuantity: order.quantity,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+    
       const otherOrders = orders
-      .filter(o => 
-        o.side === (newOrder.side === 1 ? 2 : 1) &&
-        o.instrument === newOrder.instrument &&
-        o.status === 'open' &&
-        o.remainingQuantity > 0 &&
-        o.price === newOrder.price
-      )
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  
-    for (const otherOrder of otherOrders) {
-      if (newOrder.remainingQuantity === 0) break;
-  
-      if (newOrder.remainingQuantity >= otherOrder.remainingQuantity) {
-        newOrder.remainingQuantity -= otherOrder.remainingQuantity;
-        otherOrder.remainingQuantity = 0;
-        otherOrder.status = 'executed';
-        otherOrder.updatedAt = new Date().toISOString(); 
-      } else {
-        otherOrder.remainingQuantity -= newOrder.remainingQuantity;
-        newOrder.remainingQuantity = 0;
+        .filter(o =>
+          o.side === (newOrder.side === 1 ? 2 : 1) &&
+          o.instrument === newOrder.instrument &&
+          (o.status === 'open' || o.status === 'pending') &&
+          o.remainingQuantity > 0 &&
+          o.price === newOrder.price
+        )
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    
+      for (const otherOrder of otherOrders) {
+        if (newOrder.remainingQuantity === 0) break;
+    
+        const executedQuantity = Math.min(newOrder.remainingQuantity, otherOrder.remainingQuantity);
+    
+        // Update quantities and statuses
+        newOrder.remainingQuantity -= executedQuantity;
+        otherOrder.remainingQuantity -= executedQuantity;
+
+        newOrder.status = 'pending';
         otherOrder.status = 'pending';
-        otherOrder.updatedAt = new Date().toISOString();
+    
+        if (otherOrder.remainingQuantity === 0) {
+          otherOrder.status = 'executed';
+        }
+        if (newOrder.remainingQuantity === 0) {
+          newOrder.status = 'executed';
+        }
+    
+        // Add to history
+        insertOrderHistory(otherOrder.id, executedQuantity, otherOrder.quantity);
+        insertOrderHistory(newOrder.id, executedQuantity, newOrder.quantity);
       }
-    }
-
-    if (newOrder.remainingQuantity === 0) {
-      newOrder.status = 'executed';
-    }
-    if (newOrder.remainingQuantity === newOrder.quantity) {
-      newOrder.status = 'open';
-    }
-    if (newOrder.remainingQuantity > 0 && newOrder.remainingQuantity < newOrder.quantity) {
-      newOrder.status = 'pending';
-    } 
-     
-
+    
       orders.push(newOrder);
       return newOrder;
-    }
+    },
+
   },
 };
